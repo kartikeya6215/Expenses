@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>Pocket — Expense Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #FAF8F5;
+      --bg2:       #F1EDE7;
+      --surface:   #FFFFFF;
+      --accent:    #D4622E;
+      --accent-lt: #FDF0E8;
+      --green:     #3DAA6E;
+      --green-lt:  #E6F5ED;
+      --red:       #D94F4F;
+      --red-lt:    #FDEAEA;
+      --text:      #1C1714;
+      --text2:     #7B7168;
+      --text3:     #B8B0A8;
+      --border:    #E8E3DC;
+      --shadow:    0 2px 18px rgba(28,23,20,.07);
+      --radius:    18px;
+      --nav:       70px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      max-width: 440px;
+      margin: 0 auto;
+      padding-bottom: calc(var(--nav) + 10px);
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────── */
+    .header {
+      padding: 18px 22px 14px;
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      border-bottom: 1px solid transparent;
+      transition: border-color .2s;
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.6px;
+    }
+    .date-chip {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text2);
+      background: var(--bg2);
+      padding: 5px 13px;
+      border-radius: 20px;
+      letter-spacing: .3px;
+    }
+
+    /* ── SECTIONS ─────────────────────────── */
+    .section {
+      display: none;
+      padding: 4px 18px 20px;
+      animation: fadeUp .28s ease;
+    }
+    .section.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BALANCE HERO CARD ──────────────── */
+    .hero {
+      background: var(--text);
+      border-radius: var(--radius);
+      padding: 26px 22px 22px;
+      color: #fff;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 220px; height: 220px;
+      background: var(--accent);
+      opacity: .18;
+      border-radius: 50%;
+      top: -90px; right: -65px;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 130px; height: 130px;
+      background: var(--accent);
+      opacity: .08;
+      border-radius: 50%;
+      bottom: -50px; left: 10px;
+      pointer-events: none;
+    }
+    .hero-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      opacity: .55;
+      margin-bottom: 8px;
+    }
+    .hero-amount {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      margin-bottom: 22px;
+    }
+    .hero-currency {
+      font-size: 20px;
+      font-weight: 300;
+      margin-top: 8px;
+      opacity: .7;
+    }
+    .hero-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .hero-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-mini {
+      background: rgba(255,255,255,.09);
+      border-radius: 12px;
+      padding: 11px 14px;
+    }
+    .hero-mini-lbl { font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; opacity: .55; margin-bottom: 4px; }
+    .hero-mini-val { font-size: 19px; font-weight: 700; }
+    .hero-mini-val.inc { color: #7DDFA0; }
+    .hero-mini-val.exp { color: #FF8F8F; }
+
+    /* ── STAT PILLS ─────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .stat-pill {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 15px 16px;
+      box-shadow: var(--shadow);
+    }
+    .stat-ico {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      margin-bottom: 9px;
+    }
+    .stat-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 21px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+    .stat-lbl { font-size: 11px; color: var(--text2); font-weight: 500; }
+
+    /* ── SECTION TITLE ──────────────────── */
+    .sec-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 19px;
+      font-weight: 600;
+      margin: 6px 0 13px;
+    }
+
+    /* ── TRANSACTION ITEMS ──────────────── */
+    .tx-list { display: flex; flex-direction: column; gap: 9px; }
+    .tx-item {
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      box-shadow: 0 1px 8px rgba(28,23,20,.05);
+      animation: itemIn .22s ease;
+    }
+    @keyframes itemIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .tx-ico {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .tx-ico.initials {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green);
+      background: var(--green-lt);
+    }
+    .tx-body { flex: 1; min-width: 0; }
+    .tx-name {
+      font-size: 14.5px;
+      font-weight: 600;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tx-sub { font-size: 11.5px; color: var(--text2); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .tx-right { text-align: right; flex-shrink: 0; }
+    .tx-amount {
+      font-family: 'Playfair Display', serif;
+      font-size: 16.5px;
+      font-weight: 700;
+    }
+    .tx-amount.pos { color: var(--green); }
+    .tx-amount.neg { color: var(--red); }
+    .tx-del {
+      background: none;
+      border: none;
+      font-size: 14px;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 4px 2px;
+      transition: color .18s;
+      display: block;
+      margin-top: 3px;
+      margin-left: auto;
+    }
+    .tx-del:hover { color: var(--red); }
+
+    /* ── EMPTY STATE ────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 38px 20px;
+      color: var(--text2);
+    }
+    .empty-ico { font-size: 38px; margin-bottom: 11px; }
+    .empty-txt { font-size: 13.5px; }
+
+    /* ── CHIPS ──────────────────────────── */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .chip-daily   { background: #EAF3FF; color: #3A7FD5; }
+    .chip-monthly { background: #EEEAFF; color: #6B5FD9; }
+
+    /* cat icon backgrounds */
+    .bg-food      { background: #FFF3E8; }
+    .bg-transport { background: #E8F2FF; }
+    .bg-shopping  { background: #FFF0F5; }
+    .bg-bills     { background: #EDFFF5; }
+    .bg-health    { background: #FFF0F0; }
+    .bg-other     { background: #F5F0FF; }
+    .bg-income    { background: var(--green-lt); }
+
+    /* ── ADD CARD / FORM ────────────────── */
+    .add-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+    .add-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    .fg { margin-bottom: 11px; }
+    .fl {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 5px;
+      display: block;
+    }
+    .fi, .fs {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      -webkit-appearance: none;
+    }
+    .fi:focus, .fs:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(212,98,46,.1);
+    }
+    .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .toggle-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .toggle-btn {
+      padding: 9px 6px;
+      border: none;
+      background: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .toggle-btn.on {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: 0 1px 6px rgba(0,0,0,.1);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .14s, background .18s;
+      margin-top: 4px;
+      letter-spacing: .2px;
+    }
+    .btn-add:active { transform: scale(.98); background: #b8521f; }
+
+    /* ── FILTER TABS ────────────────────── */
+    .filter-row {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .filter-row::-webkit-scrollbar { display: none; }
+    .ftab {
+      padding: 6px 15px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .18s;
+    }
+    .ftab.on {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* ── ANALYTICS ──────────────────────── */
+    .month-nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .mnav { display: flex; align-items: center; gap: 10px; }
+    .mbtn {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text);
+      font-family: serif;
+    }
+    .mlbl { font-size: 14px; font-weight: 700; min-width: 120px; text-align: center; }
+
+    .a-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 18px 18px 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+    }
+    .a-card-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .a-card-sub { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+    .a-card-val { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+
+    /* week chart */
+    .week-chart {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      height: 110px;
+      align-items: flex-end;
+      margin-bottom: 10px;
+    }
+    .wk-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .wk-bars { display: flex; gap: 3px; align-items: flex-end; width: 100%; }
+    .wk-bar {
+      flex: 1;
+      border-radius: 5px 5px 0 0;
+      min-height: 4px;
+      transition: height .45s cubic-bezier(.34,1.56,.64,1);
+    }
+    .wk-bar.i { background: var(--green); opacity: .85; }
+    .wk-bar.e { background: var(--accent); opacity: .85; }
+    .wk-lbl { font-size: 10px; color: var(--text3); font-weight: 600; }
+    .legend { display: flex; gap: 14px; }
+    .ldot { width: 9px; height: 9px; border-radius: 50%; }
+    .ltxt { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+    /* cat breakdown */
+    .cat-row {
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cat-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+    .cat-right { text-align: right; }
+    .cat-amt { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; }
+    .cat-pct { font-size: 11px; color: var(--text2); }
+    .bar-track { height: 5px; background: var(--bg2); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width .5s ease; }
+
+    /* summary rows */
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sum-row:last-child { border-bottom: none; }
+    .sum-lbl { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .sum-val { font-family: 'Playfair Display', serif; font-size: 16.5px; font-weight: 700; }
+    .sum-val.pos { color: var(--green); }
+    .sum-val.neg { color: var(--red); }
+
+    /* ── BOTTOM NAV ─────────────────────── */
+    .bnav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      height: var(--nav);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+      z-index: 200;
+    }
+    .ni {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 7px 14px 4px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ni:active { background: var(--bg2); }
+    .ni-ico { font-size: 22px; transition: transform .2s; }
+    .ni-lbl { font-size: 10px; font-weight: 700; letter-spacing: .4px; color: var(--text3); text-transform: uppercase; }
+    .ni.on .ni-lbl { color: var(--accent); }
+    .ni.on .ni-ico { transform: translateY(-2px); }
+
+    /* ── TOAST ──────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--nav) + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--text);
+      color: #fff;
+      padding: 9px 20px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+      white-space: nowrap;
+    }
+    .toast.on {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────── -->
+<header class="header">
+  <div class="header-top">
+    <h1>Pocket</h1>
+    <span class="date-chip" id="dateLbl"></span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     SECTION: HOME / DASHBOARD
+══════════════════════════════════════════ -->
+<section class="section active" id="sec-home">
+
+  <!-- Balance hero -->
+  <div class="hero">
+    <div class="hero-label">Net Balance</div>
+    <div class="hero-amount">
+      <span class="hero-currency" id="heroCurrency">₹</span>
+      <span class="hero-num" id="heroNum">0</span>
+    </div>
+    <div class="hero-row">
+      <div class="hero-mini">
+        <div class="hero-mini-lbl">Income</div>
+        <div class="hero-mini-val inc">₹<span id="dashIncome">0</span></div>
+      </div>
+      <div class="hero-mini">
+        <div class="hero-mini-lbl">Spent</div>
+        <div class="hero-mini-val exp">₹<span id="dashExpense">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="stat-row">
+    <div class="stat-pill">
+      <div class="stat-ico" style="background:#FDF0E8;">📅</div>
+      <div class="stat-val">₹<span id="todaySpent">0</span></div>
+      <div class="stat-lbl">Today's Spending</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-ico" style="background:var(--green-lt);">🤝</div>
+      <div class="stat-val"><span id="incomeCount">0</span></div>
+      <div class="stat-lbl">Payments Received</div>
+    </div>
+  </div>
+
+  <div class="sec-title">Recent Activity</div>
+  <div class="tx-list" id="recentList">
+    <div class="empty"><div class="empty-ico">🌿</div><div class="empty-txt">No transactions yet</div></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION: INCOME
+══════════════════════════════════════════ -->
+<section class="section" id="sec-income">
+
+  <div class="add-card">
+    <h3>Record a Payment Received</h3>
+    <div class="fg">
+      <label class="fl">Paid By</label>
+      <input class="fi" id="iName" placeholder="Person's name" autocomplete="off" autocorrect="off">
+    </div>
+    <div class="fr">
+      <div class="fg">
+        <label class="fl">Amount (₹)</label>
+        <input class="fi" id="iAmt" type="number" inputmode="decimal" placeholder="0">
+      </div>
+      <div class="fg">
+        <label class="fl">Date</label>
+        <input class="fi" id="iDate" type="date">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Note (optional)</label>
+      <input class="fi" id="iNote" placeholder="What was it for?">
+    </div>
+    <button class="btn-add" onclick="addIncome()">+ Add Income</button>
+  </div>
+
+  <div class="sec-title">All Payments</div>
+  <div class="tx-list" id="incomeList">
+    <div class="empty"><div class="empty-ico">💸</div><div class="empty-txt">No income recorded yet</div></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION: EXPENSES
+══════════════════════════════════════════ -->
+<section class="section" id="sec-expense">
+
+  <div class="add-card">
+    <h3>Log an Expense</h3>
+    <div class="fg">
+      <label class="fl">Expense Type</label>
+      <div class="toggle-wrap">
+        <button class="toggle-btn on" id="tDaily"  onclick="setType('daily')">📅 Daily</button>
+        <button class="toggle-btn"    id="tMonthly" onclick="setType('monthly')">🗓 Monthly</button>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg">
+        <label class="fl">Category</label>
+        <select class="fs" id="eCat">
+          <option value="food">🍜 Food</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="shopping">🛍 Shopping</option>
+          <option value="bills">💡 Bills</option>
+          <option value="health">💊 Health</option>
+          <option value="other">📦 Other</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Amount (₹)</label>
+        <input class="fi" id="eAmt" type="number" inputmode="decimal" placeholder="0">
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg">
+        <label class="fl">Description</label>
+        <input class="fi" id="eDesc" placeholde
