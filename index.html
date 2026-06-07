@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pocket — Smart Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#FAF8F5;color:#1C1714;max-width:440px;margin:0 auto;padding-bottom:20px;min-height:100dvh}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid #E8E3DC;background:#FAF8F5;position:sticky;top:0;z-index:99}
+.tab{flex:1;padding:9px 1px 7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:9.5px;color:#7B7168;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s;letter-spacing:.2px;font-weight:500}
+.tab svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:#1C1714;border-bottom-color:#D4622E;font-weight:700}
+
+/* ── APP ── */
+.app{padding:12px 15px 24px}
+.view{display:none}.view.on{display:block}
+
+/* ── HERO ── */
+.hero{background:#1C1714;border-radius:20px;padding:18px 20px;margin-bottom:10px;color:#fff;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;width:160px;height:160px;background:#D4622E;opacity:.18;border-radius:50%;top:-60px;right:-40px;pointer-events:none}
+.hero::after{content:'';position:absolute;width:90px;height:90px;background:#D4622E;opacity:.1;border-radius:50%;bottom:-30px;left:10px;pointer-events:none}
+.hero-lbl{font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;position:relative;z-index:1}
+.hero-num{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;line-height:1;margin-bottom:15px;position:relative;z-index:1}
+.hero-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
+.hero-mini{background:rgba(255,255,255,.09);border-radius:10px;padding:9px 12px}
+.hero-mini-lbl{font-size:10px;opacity:.5;margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px}
+.hero-mini-val{font-size:15px;font-weight:700}
+.hero-mini-val.pos{color:#7DDFA0}
+.hero-mini-val.neg{color:#FF8585}
+
+/* ── BUDGET ── */
+.bud-card{background:#fff;border:1px solid #E8E3DC;border-radius:14px;padding:12px 15px;margin-bottom:10px}
+.bud-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.bud-lbl{font-size:12px;color:#7B7168;font-weight:500}
+.bud-pct{font-size:12px;font-weight:700}
+.bud-track{height:5px;background:#F1EDE7;border-radius:3px;overflow:hidden}
+.bud-fill{height:100%;border-radius:3px;transition:width .5s}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.sc{background:#F1EDE7;border-radius:12px;padding:11px 13px}
+.sc-lbl{font-size:10px;color:#7B7168;margin-bottom:4px;font-weight:500}
+.sc-val{font-family:'Playfair Display',serif;font-size:19px;font-weight:700}
+
+/* ── SYNC ROW ── */
+.sync-row{display:flex;align-items:center;gap:7px;font-size:11px;color:#7B7168;margin-bottom:12px;padding:7px 11px;background:#F1EDE7;border-radius:9px}
+.sdot{width:7px;height:7px;border-radius:50%;background:#B8B0A8;flex-shrink:0}
+.sdot.ok{background:#2E9E60}
+.sdot.err{background:#C94040}
+.sdot.pend{background:#D4A62E;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── SECTION HEADER ── */
+.sh{font-size:11px;font-weight:600;color:#7B7168;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.sh-b{background:#1C1714;color:#fff;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600}
+
+/* ── SEARCH ── */
+.srch{position:relative;margin-bottom:10px}
+.srch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:#7B7168;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.srch-fi{width:100%;padding:9px 10px 9px 33px;border:1.5px solid #E8E3DC;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;background:#FAF8F5;color:#1C1714;outline:none;transition:border-color .2s}
+.srch-fi:focus{border-color:#D4622E}
+
+/* ── TRANSACTION CARD ── */
+.txl{display:flex;flex-direction:column;gap:6px}
+.tx{background:#fff;border:1px solid #E8E3DC;border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:10px}
+.tx-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.av-i{background:#E6F5ED;color:#2E9E60}
+.av-e{background:#F1EDE7;color:#7B7168;font-size:18px}
+.tx-b{flex:1;min-width:0}
+.tx-n{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-m{font-size:10.5px;color:#7B7168;margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tx-r{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tx-a{font-size:14.5px;font-weight:700}
+.pos{color:#2E9E60}.neg{color:#C94040}
+.tx-del{background:none;border:none;cursor:pointer;color:#D0C9C2;font-size:12px;padding:2px 5px;border-radius:5px;line-height:1;transition:all .15s;font-weight:600}
+.tx-del:hover{color:#C94040;background:#FDEAEA}
+
+/* ── CHIPS ── */
+.ctag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9.5px;font-weight:600;line-height:1.6}
+.ctag-d{background:#EAF3FF;color:#3A7FD5}
+.ctag-m{background:#F1EDE7;color:#7B7168}
+.ctag-i{background:#E6F5ED;color:#2E9E60}
+
+/* ── FORM ── */
+.fc{background:#fff;border:1px solid #E8E3DC;border-radius:18px;padding:15px;margin-bottom:13px}
+.fc h3{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:13px}
+.fg{margin-bottom:9px}
+.fl{font-size:10px;color:#7B7168;display:block;margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.fi,.fs{width:100%;padding:10px 11px;border:1.5px solid #E8E3DC;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:#1C1714;background:#FAF8F5;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fi:focus,.fs:focus{border-color:#D4622E}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tog{display:grid;grid-template-columns:1fr 1fr;background:#F1EDE7;border-radius:10px;padding:3px;gap:3px}
+.tb{padding:8px;border:none;background:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;color:#7B7168;transition:all .15s}
+.tb.on{background:#fff;color:#1C1714;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.btn-p{width:100%;padding:12px;background:#1C1714;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:3px;transition:opacity .15s}
+.btn-p:active{opacity:.8}
+
+/* ── FILTER CHIPS ── */
+.filters{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.fchip{padding:5px 12px;border-radius:20px;border:1.5px solid #E8E3DC;background:none;font-family:'DM Sans',sans-serif;font-size:11.5px;color:#7B7168;cursor:pointer;white-space:nowrap;font-weight:500;flex-shrink:0}
+.fchip.on{background:#1C1714;color:#fff;border-color:#1C1714}
+
+/* ── ANALYTICS TOGGLE ── */
+.a-tog{display:grid;grid-template-columns:1fr 1fr;background:#F1EDE7;border-radius:10px;padding:3px;gap:3px;margin-bottom:14px}
+.a-tb{padding:9px;border:none;background:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;color:#7B7168;font-weight:500;transition:all .15s}
+.a-tb.on{background:#fff;color:#1C1714;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.anav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.anav-inner{display:flex;align-items:center;gap:8px}
+.anav-btn{width:30px;height:30px;border:1px solid #E8E3DC;background:#fff;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#1C1714;font-size:15px}
+.anav-lbl{font-size:12px;font-weight:600;min-width:130px;text-align:center}
+
+/* ── CHART CARDS ── */
+.cc{background:#fff;border:1px solid #E8E3DC;border-radius:16px;padding:13px 15px;margin-bottom:10px}
+.cc-lbl{font-size:10px;color:#7B7168;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.cc-val{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:13px}
+
+/* ── BAR CHARTS ── */
+.dbars{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;height:85px;align-items:flex-end;margin-bottom:8px}
+.mbars{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;height:85px;align-items:flex-end;margin-bottom:8px}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:flex-end;height:85px}
+.bpairs{display:flex;gap:2px;align-items:flex-end;width:100%}
+.bar{flex:1;border-radius:2px 2px 0 0}
+.bar-i{background:#2E9E60;opacity:.7}
+.bar-e{background:#D4622E;opacity:.7}
+.bar-lbl{font-size:9px;color:#B8B0A8;text-align:center}
+.leg-row{display:flex;gap:14px;margin-top:4px}
+.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+
+/* ── CATEGORY BREAKDOWN ── */
+.cr{padding:9px 0;border-bottom:1px solid #E8E3DC}.cr:last-child{border-bottom:none}
+.cr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.cr-name{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.cr-amt{font-size:14px;font-weight:700}
+.cr-pct{font-size:10px;color:#7B7168}
+.pt{height:4px;background:#F1EDE7;border-radius:2px;overflow:hidden}
+.pf{height:100%;border-radius:2px;transition:width .5s}
+
+/* ── WEEK TABLE ── */
+.wtable{width:100%;border-collapse:collapse;font-size:11.5px}
+.wtable th{padding:7px 3px;text-align:center;font-size:9.5px;font-weight:700;color:#7B7168;text-transform:uppercase;border-bottom:1px solid #E8E3DC;letter-spacing:.3px}
+.wtable td{padding:7px 3px;text-align:center;border-bottom:1px solid #F1EDE7}
+.wtable tbody tr:last-child td{border-bottom:none;background:#F9F7F4;font-weight:700}
+.wt-day{font-weight:600;color:#1C1714;line-height:1.4;font-size:11px}
+.wt-sub{font-size:9px;color:#B8B0A8;font-weight:400;display:block}
+.wt-inc{color:#2E9E60;font-weight:600;font-size:11px}
+.wt-exp{color:#C94040;font-weight:600;font-size:11px}
+
+/* ── SUMMARY ── */
+.sr{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #E8E3DC}
+.sr:last-child{border-bottom:none}
+.sr-lbl{font-size:13px;color:#7B7168}
+.sr-val{font-size:15px;font-weight:700}
+
+/* ── MORE TAB ── */
+.more-sec{background:#fff;border:1px solid #E8E3DC;border-radius:16px;padding:14px 15px;margin-bottom:10px}
+.more-sec h3{font-size:13px;font-weight:700;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.btn-out{width:100%;padding:11px 14px;border:1.5px solid #E8E3DC;border-radius:10px;background:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;color:#1C1714;text-align:left;display:flex;align-items:center;gap:10px;transition:background .15s;margin-bottom:8px}
+.btn-out:last-child{margin-bottom:0}
+.btn-out:hover{background:#F1EDE7}
+.btn-danger{border-color:#FDEAEA;color:#C94040}
+.btn-danger:hover{background:#FDEAEA}
+.kstat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kstat{background:#F1EDE7;border-radius:10px;padding:10px 12px;text-align:center}
+.kstat-val{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:3px}
+.kstat-lbl{font-size:9.5px;color:#7B7168}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:28px 12px;color:#7B7168;font-size:13px}
+.empty-ico{font-size:28px;margin-bottom:8px}
+
+/* ── BOTTOM SHEETS ── */
+.sheet-bg{display:none;position:fixed;inset:0;background:rgba(28,23,20,.45);z-index:500;align-items:flex-end;justify-content:center}
+.sheet-bg.show{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:22px 18px 28px;width:100%;max-width:440px}
+.sheet h4{font-size:16px;font-weight:700;margin-bottom:5px}
+.sheet p{font-size:13px;color:#7B7168;margin-bottom:18px;line-height:1.5}
+.sheet-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-cancel{padding:12px;border:1.5px solid #E8E3DC;border-radius:12px;background:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;color:#1C1714}
+.btn-confirm{padding:12px;border:none;border-radius:12px;background:#C94040;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ══ TABS ══ -->
+<div class="tabs">
+  <button class="tab on" onclick="nav('home',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>HOME
+  </button>
+  <button class="tab" onclick="nav('income',this)">
+    <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>INCOME
+  </button>
+  <button class="tab" onclick="nav('expense',this)">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>SPEND
+  </button>
+  <button class="tab" onclick="nav('analytics',this)">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>STATS
+  </button>
+  <button class="tab" onclick="nav('more',this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>MORE
+  </button>
+</div>
+
+<div class="app">
+
+  <!-- ══ HOME ══ -->
+  <div class="view on" id="v-home">
+    <div class="hero">
+      <div class="hero-lbl">Net Balance</div>
+      <div class="hero-num" id="heroNum">₹0</div>
+      <div class="hero-row">
+        <div class="hero-mini"><div class="hero-mini-lbl">Income</div><div class="hero-mini-val pos" id="heroInc">₹0</div></div>
+        <div class="hero-mini"><div class="hero-mini-lbl">Spent</div><div class="hero-mini-val neg" id="heroExp">₹0</div></div>
+      </div>
+    </div>
+    <div class="bud-card" id="budCard" style="display:none">
+      <div class="bud-row"><span class="bud-lbl">📊 Monthly Budget</span><span class="bud-pct" id="budPct">0%</span></div>
+      <div class="bud-track"><div class="bud-fill" id="budFill"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span style="font-size:11px;color:#7B7168">Spent ₹<span id="budSpent">0</span></span>
+        <span style="font-size:11px;color:#7B7168">Limit ₹<span id="budLimit">0</span></span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="sc"><div class="sc-lbl">Today's Spending</div><div class="sc-val" id="todayExp">₹0</div></div>
+      <div class="sc"><div class="sc-lbl">Today's Income</div><div class="sc-val" id="todayInc">₹0</div></div>
+    </div>
+    <div class="sync-row"><div class="sdot" id="sdot"></div><span id="smsg">Ready</span></div>
+    <div class="sh">Recent Activity <span class="sh-b" id="totalCnt">0</span></div>
+    <div class="txl" id="recentList"><div class="empty"><div class="empty-ico">🌿</div>No transactions yet</div></div>
+  </div>
+
+  <!-- ══ INCOME ══ -->
+  <div class="view" id="v-income">
+    <div class="fc">
+      <h3>💰 Record Payment Received</h3>
+      <div class="fg"><label class="fl">Paid By (Name)</label><input class="fi" id="iName" placeholder="Person's name" autocomplete="off" autocorrect="off"></div>
+      <div class="f2">
+        <div class="fg"><label class="fl">Amount (₹)</label><input class="fi" id="iAmt" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="iDate" type="date"></div>
+      </div>
+      <div class="fg"><label class="fl">Note / Reason</label><input class="fi" id="iNote" placeholder="What was it for?"></div>
+      <button class="btn-p" onclick="addIncome()">+ Add Income</button>
+    </div>
+    <div class="srch">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="srch-fi" placeholder="Search payments..." oninput="searchInc(this.value)">
+    </div>
+    <div class="sh">All Payments <span class="sh-b" id="incCnt">0</span></div>
+    <div class="txl" id="incList"><div class="empty"><div class="empty-ico">💸</div>No income recorded yet</div></div>
+  </div>
+
+  <!-- ══ EXPENSES ══ -->
+  <div class="view" id="v-expense">
+    <div class="fc">
+      <h3>🧾 Log an Expense</h3>
+      <div class="fg">
+        <label class="fl">Expense Type</label>
+        <div class="tog">
+          <button class="tb on" id="tDay" onclick="setEType('daily')">📅 Daily</button>
+          <button class="tb" id="tMon" onclick="setEType('monthly')">🗓 Monthly</button>
+        </div>
+      </div>
+      <div class="f2">
+        <div class="fg">
+          <label class="fl">Category</label>
+          <select class="fs" id="eCat">
+            <option value="food">🍜 Food</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="shopping">🛍 Shopping</option>
+            <option value="bills">💡 Bills</option>
+            <option value="health">💊 Health</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Amount (₹)</label><input class="fi" id="eAmt" type="number" inputmode="decimal" placeholder="0"></div>
+      </div>
+      <div class="f2">
+        <div class="fg"><label class="fl">Description</label><input class="fi" id="eDesc" placeholder="What for?"></div>
+        <div class="fg"><label class="fl">Date</label><input class="fi" id="eDate" type="date"></div>
+      </div>
+      <button class="btn-p" onclick="addExpense()">+ Log Expense</button>
+    </div>
+    <div class="srch">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="srch-fi" placeholder="Search expenses..." oninput="searchExp(this.value)">
+    </div>
+    <div class="filters">
+      <button class="fchip on" onclick="setFilt(this,'all')">All</button>
+      <button class="fchip" onclick="setFilt(this,'daily')">📅 Daily</button>
+      <button class="fchip" onclick="setFilt(this,'monthly')">🗓 Monthly</button>
+      <button class="fchip" onclick="setFilt(this,'food')">🍜 Food</button>
+      <button class="fchip" onclick="setFilt(this,'transport')">🚗 Transport</button>
+      <button class="fchip" onclick="setFilt(this,'shopping')">🛍 Shopping</button>
+      <button class="fchip" onclick="setFilt(this,'bills')">💡 Bills</button>
+      <button class="fchip" onclick="setFilt(this,'health')">💊 Health</button>
+    </div>
+    <div class="sh">All Expenses <span class="sh-b" id="expCnt">0</span></div>
+    <div class="txl" id="expList"><div class="empty"><div class="empty-ico">🧾</div>No expenses yet</div></div>
+  </div>
+
+  <!-- ══ ANALYTICS ══ -->
+  <div class="view" id="v-analytics">
+    <div class="a-tog">
+      <button class="a-tb on" id="aTW" onclick="setAView('weekly')">📅 Weekly</button>
+      <button class="a-tb" id="aTM" onclick="setAView('monthly')">🗓 Monthly</button>
+    </div>
+
+    <!-- WEEKLY -->
+    <div id="aWeekly">
+      <div class="anav">
+        <div class="sh" style="margin:0">Week View</div>
+        <div class="anav-inner">
+          <button class="anav-btn" onclick="shiftWeek(-1)">&#8249;</button>
+          <span class="anav-lbl" id="weekLbl"></span>
+          <button class="anav-btn" onclick="shiftWeek(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cc">
+        <div class="cc-lbl">Net This Week</div>
+        <div class="cc-val" id="weekNet">₹0</div>
