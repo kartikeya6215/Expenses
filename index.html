@@ -310,7 +310,7 @@ body{font-family:'DM Sans',sans-serif;background:#FAF8F5;color:#1C1714;max-width
       <button class="a-tb" id="aTM" onclick="setAView('monthly')">🗓 Monthly</button>
     </div>
 
-    <!-- WEEKLY -->
+<!-- WEEKLY -->
     <div id="aWeekly">
       <div class="anav">
         <div class="sh" style="margin:0">Week View</div>
@@ -323,3 +323,644 @@ body{font-family:'DM Sans',sans-serif;background:#FAF8F5;color:#1C1714;max-width
       <div class="cc">
         <div class="cc-lbl">Net This Week</div>
         <div class="cc-val" id="weekNet">₹0</div>
+        <div class="dbars" id="dayBars"></div>
+        <div class="leg-row">
+          <div><span class="ldot" style="background:#2E9E60;opacity:.7"></span><span style="font-size:11px;color:#7B7168">Income</span></div>
+          <div><span class="ldot" style="background:#D4622E;opacity:.7"></span><span style="font-size:11px;color:#7B7168">Expenses</span></div>
+        </div>
+      </div>
+      <div class="cc" id="weekTable"></div>
+    </div>
+
+    <!-- MONTHLY -->
+    <div id="aMonthly" style="display:none">
+      <div class="anav">
+        <div class="sh" style="margin:0">Month View</div>
+        <div class="anav-inner">
+          <button class="anav-btn" onclick="shiftMonth(-1)">&#8249;</button>
+          <span class="anav-lbl" id="monthLbl"></span>
+          <button class="anav-btn" onclick="shiftMonth(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cc">
+        <div class="cc-lbl">Net This Month</div>
+        <div class="cc-val" id="monthNet">₹0</div>
+        <div class="mbars" id="monthBars"></div>
+        <div class="leg-row">
+          <div><span class="ldot" style="background:#2E9E60;opacity:.7"></span><span style="font-size:11px;color:#7B7168">Income</span></div>
+          <div><span class="ldot" style="background:#D4622E;opacity:.7"></span><span style="font-size:11px;color:#7B7168">Expenses</span></div>
+        </div>
+      </div>
+      <div class="sh">By Category</div>
+      <div class="cc" id="catBreak"></div>
+      <div class="sh">Monthly Summary</div>
+      <div class="cc" id="mSummary"></div>
+    </div>
+  </div>
+
+    <!-- ══ MORE ══ -->
+  <div class="view" id="v-more">
+    <div class="more-sec">
+      <h3>📥 Download Statement</h3>
+      <p style="font-size:12px;color:#7B7168;margin-bottom:11px;line-height:1.5">Download all your transactions as a CSV file with running balance — open in Excel or Google Sheets.</p>
+      <button class="btn-out" style="font-weight:700;border-color:#1C1714" onclick="downloadCSV()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download CSV Statement
+      </button>
+    </div>
+    <div class="more-sec">
+      <h3>🎯 Monthly Budget</h3>
+      <p style="font-size:12px;color:#7B7168;margin-bottom:10px">Set a monthly spending limit — track it on the home screen.</p>
+      <div class="f2">
+        <input class="fi" id="budInput" type="number" inputmode="decimal" placeholder="Budget amount (₹)">
+        <button class="btn-p" style="margin:0" onclick="setBudget()">Set</button>
+      </div>
+    </div>
+    <div class="more-sec">
+      <h3>📊 Key Statistics</h3>
+      <div class="kstat-grid" id="kstatGrid">
+        <div class="kstat"><div class="kstat-val">—</div><div class="kstat-lbl">Avg Daily Spend</div></div>
+        <div class="kstat"><div class="kstat-val">0</div><div class="kstat-lbl">Total Entries</div></div>
+        <div class="kstat"><div class="kstat-val">—</div><div class="kstat-lbl">Biggest Expense</div></div>
+        <div class="kstat"><div class="kstat-val">—</div><div class="kstat-lbl">Largest Income</div></div>
+      </div>
+    </div>
+    <div class="more-sec">
+      <h3>⚠️ Data</h3>
+      <button class="btn-out btn-danger" onclick="$('clearSheet').classList.add('show')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Clear All Data
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ DELETE SHEET ══ -->
+<div class="sheet-bg" id="delSheet" onclick="closeSheet('delSheet',event)">
+  <div class="sheet">
+    <h4>Remove Entry?</h4>
+    <p>This removes it from your tracker. Note: the entry in Google Sheets stays as a permanent record.</p>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeSheet('delSheet')">Cancel</button>
+      <button class="btn-confirm" onclick="doDelete()">Yes, Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CLEAR SHEET ══ -->
+<div class="sheet-bg" id="clearSheet" onclick="closeSheet('clearSheet',event)">
+  <div class="sheet">
+    <h4>Clear All Data?</h4>
+    <p>This permanently deletes ALL transactions from this device. Cannot be undone.</p>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="closeSheet('clearSheet')">Cancel</button>
+      <button class="btn-confirm" onclick="doClear()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFi7QqLVXh7OKWFAmYx19yYdIyQUynkNQn3v4POrACVKrDPAPz9gwKoO7L5W2JRjM/exec";
+
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let transactions  = JSON.parse(localStorage.getItem('pocket_txns') || '[]');
+let monthlyBudget = parseFloat(localStorage.getItem('pocket_budget') || '0');
+let eType      = 'daily';
+let eFilt      = 'all';
+let iSearch    = '';
+let eSearch    = '';
+let aView      = 'weekly';
+let weekOffset = 0;
+let moOffset   = 0;
+let pendingDel = null;
+
+// ══════════════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const CICO  = {food:'🍜',transport:'🚗',shopping:'🛍',bills:'💡',health:'💊',other:'📦'};
+const CNAME = {food:'Food',transport:'Transport',shopping:'Shopping',bills:'Bills',health:'Health',other:'Other'};
+const CCOL  = {food:'#E8703A',transport:'#3A7FD5',shopping:'#D4627F',bills:'#D4A62E',health:'#C94040',other:'#7B7168'};
+const DNAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const MNAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ══════════════════════════════════════════════════════
+//  UTILITIES
+// ══════════════════════════════════════════════════════
+const fmt = n => Math.round(n).toLocaleString('en-IN');
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// Timezone-safe date functions
+function today() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function toDateStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function dfmt(s) {
+  return new Date(s + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+}
+const saveLoc = () => localStorage.setItem('pocket_txns', JSON.stringify(transactions));
+
+// ══════════════════════════════════════════════════════
+//  SYNC STATUS
+// ══════════════════════════════════════════════════════
+function setSync(state, msg) {
+  const dot = $('sdot');
+  dot.className = 'sdot' + (state ? ' '+state : '');
+  $('smsg').textContent = msg;
+}
+
+// ══════════════════════════════════════════════════════
+//  GOOGLE SHEETS SAVE — original function as provided
+// ══════════════════════════════════════════════════════
+function saveTransaction(tx) {
+  transactions.unshift(tx);
+  saveLoc();
+  renderAll();
+
+  
+  if (GOOGLE_SCRIPT_URL) {
+    setSync('pend', 'Syncing to Google Sheets...');
+    const formData = new URLSearchParams();
+    formData.append('date',   tx.date);
+    formData.append('type',   tx.type);
+    formData.append('title',  tx.title);
+    formData.append('tag',    tx.tag);
+    formData.append('amount', tx.amount);
+
+    fetch(GOOGLE_SCRIPT_URL, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    formData.toString()
+    })
+    .then(() => {
+      const t = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+      setSync('ok', 'Synced to Google Sheets ✓  ' + t);
+    })
+    .catch(err => {
+      setSync('err', 'Saved locally — no internet');
+      console.log('Cloud sync postponed:', err);
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════
+function nav(page, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  $('v-' + page).classList.add('on');
+  el.classList.add('on');
+  if (page === 'analytics') renderAnalytics();
+  if (page === 'more')      renderKStats();
+  window.scrollTo(0, 0);
+}
+
+// ══════════════════════════════════════════════════════
+//  CONTROLS
+// ══════════════════════════════════════════════════════
+function setEType(t) {
+  eType = t;
+  $('tDay').classList.toggle('on', t === 'daily');
+  $('tMon').classList.toggle('on', t === 'monthly');
+}
+function setFilt(el, f) {
+  eFilt = f;
+  document.querySelectorAll('.fchip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderExpList();
+}
+function searchInc(q) { iSearch = q.toLowerCase(); renderIncList(); }
+function searchExp(q) { eSearch = q.toLowerCase(); renderExpList(); }
+function setAView(v) {
+  aView = v;
+  $('aTW').classList.toggle('on', v === 'weekly');
+  $('aTM').classList.toggle('on', v === 'monthly');
+  $('aWeekly').style.display  = v === 'weekly'  ? 'block' : 'none';
+  $('aMonthly').style.display = v === 'monthly' ? 'block' : 'none';
+  renderAnalytics();
+  }
+
+  // ══════════════════════════════════════════════════════
+//  ADD INCOME
+// ══════════════════════════════════════════════════════
+function addIncome() {
+  const name = $('iName').value.trim();
+  const amt  = parseFloat($('iAmt').value);
+  const date = $('iDate').value;
+  const note = $('iNote').value.trim();
+  if (!name)          { $('iName').focus(); return; }
+  if (!amt || amt<=0) { $('iAmt').focus();  return; }
+  $('iName').value = '';
+  $('iAmt').value  = '';
+  $('iNote').value = '';
+  saveTransaction({ id: Date.now(), date, type: 'INCOME', title: name, tag: note || 'Payment received', amount: amt });
+}
+
+// ══════════════════════════════════════════════════════
+//  ADD EXPENSE
+// ══════════════════════════════════════════════════════
+function addExpense() {
+  const cat  = $('eCat').value;
+  const amt  = parseFloat($('eAmt').value);
+  const desc = $('eDesc').value.trim() || CNAME[cat];
+  const date = $('eDate').value;
+  if (!amt || amt<=0) { $('eAmt').focus(); return; }
+  $('eAmt').value  = '';
+  $('eDesc').value = '';
+  saveTransaction({ id: Date.now(), date, type: 'EXPENSE', title: desc, tag: cat, amount: amt, expType: eType });
+}
+
+// ══════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════
+function askDelete(id) {
+  pendingDel = id;
+  $('delSheet').classList.add('show');
+}
+function doDelete() {
+  if (pendingDel !== null) {
+    transactions = transactions.filter(t => t.id !== pendingDel);
+    saveLoc();
+    pendingDel = null;
+    $('delSheet').classList.remove('show');
+    renderAll();
+    setSync('ok', 'Entry removed from tracker');
+  }
+}
+function doClear() {
+  transactions = [];
+  saveLoc();
+  $('clearSheet').classList.remove('show');
+  renderAll();
+  setSync('', 'All data cleared');
+}
+function closeSheet(id, e) {
+  if (!e || e.target === $(id)) $(id).classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════════════
+function renderAll() {
+  renderHome();
+  renderIncList();
+  renderExpList();
+  }
+
+  
+// ══════════════════════════════════════════════════════
+//  HOME
+// ══════════════════════════════════════════════════════
+function renderHome() {
+  const allInc = transactions.filter(t => t.type === 'INCOME').reduce((s,t) => s+t.amount, 0);
+  const allExp = transactions.filter(t => t.type === 'EXPENSE').reduce((s,t) => s+t.amount, 0);
+  const net    = allInc - allExp;
+  const td     = today();
+  const todInc = transactions.filter(t => t.type === 'INCOME'   && t.date === td).reduce((s,t) => s+t.amount, 0);
+  const todExp = transactions.filter(t => t.type === 'EXPENSE'  && t.date === td).reduce((s,t) => s+t.amount, 0);
+
+  $('heroNum').innerHTML = `<span style="color:${net<0?'#FF8585':'#fff'}">${net<0?'-':''}₹${fmt(Math.abs(net))}</span>`;
+  $('heroInc').textContent = '₹' + fmt(allInc);
+  $('heroExp').textContent = '₹' + fmt(allExp);
+  $('todayInc').textContent = '₹' + fmt(todInc);
+  $('todayExp').textContent = '₹' + fmt(todExp);
+  $('totalCnt').textContent = transactions.length;
+
+  // Budget progress
+  if (monthlyBudget > 0) {
+    const now  = new Date();
+    const mExp = transactions.filter(t => {
+      const d = new Date(t.date);
+      return t.type === 'EXPENSE' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((s,t) => s+t.amount, 0);
+    const pct = Math.min(Math.round(mExp / monthlyBudget * 100), 100);
+    const col = pct > 90 ? '#C94040' : pct > 70 ? '#D4A62E' : '#2E9E60';
+    $('budCard').style.display = 'block';
+    $('budPct').textContent = pct + '%';
+    $('budPct').style.color = col;
+    $('budFill').style.width = pct + '%';
+    $('budFill').style.background = col;
+    $('budSpent').textContent = fmt(mExp);
+    $('budLimit').textContent = fmt(monthlyBudget);
+  } else {
+    $('budCard').style.display = 'none';
+  }
+
+  // Recent
+  const recent = [...transactions].sort((a,b) => b.date.localeCompare(a.date) || b.id-a.id).slice(0,6);
+  $('recentList').innerHTML = recent.length
+    ? recent.map(t => txCard(t, false)).join('')
+    : '<div class="empty"><div class="empty-ico">🌿</div>No transactions yet</div>';
+}
+
+// ══════════════════════════════════════════════════════
+//  INCOME LIST
+// ══════════════════════════════════════════════════════
+function renderIncList() {
+  let list = transactions.filter(t => t.type === 'INCOME').sort((a,b) => b.date.localeCompare(a.date) || b.id-a.id);
+  $('incCnt').textContent = list.length;
+  if (iSearch) list = list.filter(t => t.title.toLowerCase().includes(iSearch) || t.tag.toLowerCase().includes(iSearch));
+  $('incList').innerHTML = list.length
+    ? list.map(t => txCard(t, true)).join('')
+    : '<div class="empty"><div class="empty-ico">💸</div>No income recorded yet</div>';
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPENSE LIST
+// ══════════════════════════════════════════════════════
+function renderExpList() {
+  let list = transactions.filter(t => t.type === 'EXPENSE').sort((a,b) => b.date.localeCompare(a.date) || b.id-a.id);
+  $('expCnt').textContent = list.length;
+  if (eFilt !== 'all') list = list.filter(e => e.expType === eFilt || e.tag === eFilt);
+  if (eSearch) list = list.filter(t => t.title.toLowerCase().includes(eSearch) || (CNAME[t.tag]||t.tag).toLowerCase().includes(eSearch));
+  $('expList').innerHTML = list.length
+    ? list.map(t => txCard(t, true)).join('')
+    : '<div class="empty"><div class="empty-ico">🧾</div>Nothing found</div>';
+}
+  }
+
+
+  // ══════════════════════════════════════════════════════
+//  TRANSACTION CARD
+// ══════════════════════════════════════════════════════
+function txCard(t, showDel) {
+  const isInc = t.type === 'INCOME';
+  const init  = t.title.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const icon  = isInc
+    ? `<div class="tx-av av-i">${esc(init)}</div>`
+    : `<div class="tx-av av-e">${CICO[t.tag]||'📦'}</div>`;
+  const chip  = isInc
+    ? `<span class="ctag ctag-i">Income</span>`
+    : `<span class="ctag ctag-${t.expType==='daily'?'d':'m'}">${t.expType==='daily'?'Daily':'Monthly'}</span>`;
+  const sub   = isInc ? esc(t.tag) : esc(CNAME[t.tag]||t.tag);
+  const amt   = `<div class="tx-a ${isInc?'pos':'neg'}">${isInc?'+':'-'}₹${fmt(t.amount)}</div>`;
+  const del   = showDel ? `<button class="tx-del" onclick="askDelete(${t.id})" title="Remove">✕</button>` : '';
+  return `<div class="tx">
+    ${icon}
+    <div class="tx-b">
+      <div class="tx-n">${esc(t.title)}</div>
+      <div class="tx-m">${chip} · ${sub} · ${dfmt(t.date)}</div>
+    </div>
+    <div class="tx-r">${amt}${del}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════════════════
+function renderAnalytics() {
+  if (aView === 'weekly') renderWeekly();
+  else renderMonthly();
+}
+
+// ── Week start (Monday) ──
+function getWeekStart(offset) {
+  const d   = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon  = new Date(d);
+  mon.setDate(d.getDate() + diff + offset * 7);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+
+function shiftWeek(d)  { weekOffset += d; renderWeekly(); }
+function shiftMonth(d) { moOffset  += d; renderMonthly(); }
+
+// ── WEEKLY RENDER ──
+function renderWeekly() {
+  const wStart = getWeekStart(weekOffset);
+  const wEnd   = new Date(wStart);
+  wEnd.setDate(wStart.getDate() + 6);
+
+  const sl = wStart.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  const el = wEnd.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  $('weekLbl').textContent = sl + ' – ' + el;
+
+  // Build day array Mon→Sun
+  const days = Array.from({length:7}, (_,i) => {
+    const d    = new Date(wStart);
+    d.setDate(wStart.getDate() + i);
+    const dStr = toDateStr(d);
+    const inc  = transactions.filter(t => t.date === dStr && t.type === 'INCOME').reduce((s,t) => s+t.amount, 0);
+    const exp  = transactions.filter(t => t.date === dStr && t.type === 'EXPENSE').reduce((s,t) => s+t.amount, 0);
+    return { dStr, inc, exp, net: inc-exp, isToday: dStr === today() };
+  });
+
+  const wInc = days.reduce((s,d) => s+d.inc, 0);
+  const wExp = days.reduce((s,d) => s+d.exp, 0);
+  const wNet = wInc - wExp;
+
+  $('weekNet').textContent = (wNet<0?'-':'') + '₹' + fmt(Math.abs(wNet));
+  $('weekNet').style.color = wNet < 0 ? '#C94040' : '#1C1714';
+
+  const maxV = Math.max(...days.map(d => Math.max(d.inc, d.exp)), 1);
+  const BH   = 75;
+
+  // Day bars
+  $('dayBars').innerHTML = days.map((day, i) => {
+    const iH  = day.inc > 0 ? Math.max(Math.round(day.inc/maxV*BH), 4) : 0;
+    const eH  = day.exp > 0 ? Math.max(Math.round(day.exp/maxV*BH), 4) : 0;
+    const col = day.isToday ? 'color:#D4622E;font-weight:700' : '';
+    return `<div class="bar-col">
+      <div class="bpairs" style="height:${BH}px;align-items:flex-end">
+        <div class="bar bar-i" style="height:${iH}px"></div>
+        <div class="bar bar-e" style="height:${eH}px"></div>
+      </div>
+      <div class="bar-lbl" style="${col}">${DNAMES[i]}</div>
+    </div>`;
+  }).join('');
+
+  // Day table
+  $('weekTable').innerHTML = `
+    <div class="cc-lbl" style="margin-bottom:10px">Day-by-Day Breakdown</div>
+    <table class="wtable">
+      <thead><tr><th>Day</th><th>Income</th><th>Expense</th><th>Net</th></tr></thead>
+      <tbody>
+        ${days.map((day,i) => {
+          const hasData = day.inc>0 || day.exp>0;
+          const netCol  = !hasData ? '#B8B0A8' : day.net>=0 ? '#2E9E60' : '#C94040';
+          return `<tr style="${day.isToday?'background:#FFFAF7':''}">
+            <td class="wt-day" style="${day.isToday?'color:#D4622E':''}">${DNAMES[i]}<span class="wt-sub">${dfmt(day.dStr)}</span></td>
+            <td class="wt-inc">${day.inc > 0 ? '+₹'+fmt(day.inc) : '—'}</td>
+            <td class="wt-exp">${day.exp > 0 ? '-₹'+fmt(day.exp) : '—'}</td>
+            <td style="font-weight:700;font-size:11px;color:${netCol}">${!hasData?'—':(day.net>=0?'+':'-')+'₹'+fmt(Math.abs(day.net))}</td>
+          </tr>`;
+        }).join('')}
+        <tr>
+          <td class="wt-day">Total</td>
+          <td class="wt-inc">+₹${fmt(wInc)}</td>
+          <td class="wt-exp">-₹${fmt(wExp)}</td>
+          <td style="font-weight:700;font-size:12px;color:${wNet>=0?'#2E9E60':'#C94040'}">${wNet>=0?'+':'-'}₹${fmt(Math.abs(wNet))}</td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// ── MONTHLY RENDER ──
+function renderMonthly() {
+  const base = new Date().getFullYear() * 12 + new Date().getMonth();
+  const abs  = base + moOffset;
+  const tM   = ((abs % 12) + 12) % 12;
+  const tY   = Math.floor(abs / 12);
+
+  $('monthLbl').textContent = MNAMES[tM] + ' ' + tY;
+
+  const mTxns = transactions.filter(t => { const d = new Date(t.date); return d.getMonth()===tM && d.getFullYear()===tY; });
+  const mInc  = mTxns.filter(t => t.type === 'INCOME');
+  const mExp  = mTxns.filter(t => t.type === 'EXPENSE');
+  const tI    = mInc.reduce((s,t) => s+t.amount, 0);
+  const tE    = mExp.reduce((s,t) => s+t.amount, 0);
+  const net   = tI - tE;
+
+  $('monthNet').textContent = (net<0?'-':'') + '₹' + fmt(Math.abs(net));
+  $('monthNet').style.color = net < 0 ? '#C94040' : '#1C1714';
+
+  // Week bars
+  const dim  = new Date(tY, tM+1, 0).getDate();
+  const wInc = [0,1,2,3].map(w => { const s=w*7+1, e=Math.min(s+6,dim); return mInc.filter(t=>{const d=new Date(t.date).getDate();return d>=s&&d<=e;}).reduce((a,t)=>a+t.amount,0); });
+  const wExp = [0,1,2,3].map(w => { const s=w*7+1, e=Math.min(s+6,dim); return mExp.filter(t=>{const d=new Date(t.date).getDate();return d>=s&&d<=e;}).reduce((a,t)=>a+t.amount,0); });
+  const mx   = Math.max(...wInc, ...wExp, 1);
+  const BH   = 75;
+
+  $('monthBars').innerHTML = [0,1,2,3].map(k => `
+    <div class="bar-col">
+      <div class="bpairs" style="height:${BH}px;align-items:flex-end">
+        <div class="bar bar-i" style="height:${wInc[k]>0?Math.max(Math.round(wInc[k]/mx*BH),4):0}px"></div>
+        <div class="bar bar-e" style="height:${wExp[k]>0?Math.max(Math.round(wExp[k]/mx*BH),4):0}px"></div>
+      </div>
+      <div class="bar-lbl">W${k+1}</div>
+    </div>`).join('');
+
+  // Category breakdown
+  const catMap = {};
+  mExp.forEach(t => catMap[t.tag] = (catMap[t.tag]||0) + t.amount);
+  const catEl = $('catBreak');
+  if (!Object.keys(catMap).length) {
+    catEl.innerHTML = '<div class="empty" style="padding:12px;font-size:12px">No expense data this month</div>';
+  } else {
+    const entries = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+    catEl.innerHTML = entries.map(([cat,amt]) => `
+      <div class="cr">
+        <div class="cr-top">
+          <div class="cr-name">${CICO[cat]||'📦'} ${CNAME[cat]||cat}</div>
+          <div><div class="cr-amt">₹${fmt(amt)}</div><div class="cr-pct">${tE?Math.round(amt/tE*100):0}% of total</div></div>
+        </div>
+        <div class="pt"><div class="pf" style="width:${Math.round(amt/entries[0][1]*100)}%;background:${CCOL[cat]||'#7B7168'}"></div></div>
+      </div>`).join('');
+  }
+
+  // Monthly summary
+  const dE  = mExp.filter(t => t.expType==='daily').reduce((s,t)=>s+t.amount,0);
+  const mE  = mExp.filter(t => t.expType==='monthly').reduce((s,t)=>s+t.amount,0);
+  $('mSummary').innerHTML = `
+    <div class="sr"><span class="sr-lbl">💰 Total Income</span><span class="sr-val pos">+₹${fmt(tI)}</span></div>
+    <div class="sr"><span class="sr-lbl">🧾 Total Expenses</span><span class="sr-val neg">-₹${fmt(tE)}</span></div>
+    <div class="sr"><span class="sr-lbl">📅 Daily Expenses</span><span class="sr-val">₹${fmt(dE)}</span></div>
+    <div class="sr"><span class="sr-lbl">🗓 Monthly Expenses</span><span class="sr-val">₹${fmt(mE)}</span></div>
+    <div class="sr" style="margin-top:4px;padding-top:12px;border-top:1.5px solid #E8E3DC">
+      <span class="sr-lbl" style="font-weight:700;color:#1C1714;font-size:14px">🏦 Net Balance</span>
+      <span class="sr-val" style="font-size:18px;color:${net>=0?'#2E9E60':'#C94040'}">${net>=0?'+':'-'}₹${fmt(Math.abs(net))}</span>
+    </div>`;
+  }
+
+  // ══════════════════════════════════════════════════════
+//  KEY STATS
+// ══════════════════════════════════════════════════════
+function renderKStats() {
+  const exps = transactions.filter(t => t.type === 'EXPENSE');
+  const incs = transactions.filter(t => t.type === 'INCOME');
+  const ago30 = new Date(); ago30.setDate(ago30.getDate()-30);
+  const r30   = exps.filter(t => new Date(t.date) >= ago30);
+  const avg   = r30.length ? r30.reduce((s,t)=>s+t.amount,0) / 30 : 0;
+  const bigE  = exps.length ? Math.max(...exps.map(t=>t.amount)) : 0;
+  const bigI  = incs.length ? Math.max(...incs.map(t=>t.amount)) : 0;
+  $('kstatGrid').innerHTML = `
+    <div class="kstat"><div class="kstat-val">₹${fmt(avg)}</div><div class="kstat-lbl">Avg Daily Spend (30d)</div></div>
+    <div class="kstat"><div class="kstat-val">${transactions.length}</div><div class="kstat-lbl">Total Entries</div></div>
+    <div class="kstat"><div class="kstat-val">${bigE?'₹'+fmt(bigE):'—'}</div><div class="kstat-lbl">Biggest Expense</div></div>
+    <div class="kstat"><div class="kstat-val">${bigI?'₹'+fmt(bigI):'—'}</div><div class="kstat-lbl">Largest Income</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  BUDGET
+// ══════════════════════════════════════════════════════
+function setBudget() {
+  const val = parseFloat($('budInput').value);
+  if (!val || val<=0) { $('budInput').focus(); return; }
+  monthlyBudget = val;
+  localStorage.setItem('pocket_budget', val);
+  $('budInput').value = '';
+  renderHome();
+  setSync('ok', `Monthly budget set to ₹${fmt(val)}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  DOWNLOAD CSV
+// ══════════════════════════════════════════════════════
+function downloadCSV() {
+  if (!transactions.length) { setSync('err','No data to download'); return; }
+
+  const sorted  = [...transactions].sort((a,b) => a.date.localeCompare(b.date));
+  const totalI  = transactions.filter(t=>t.type==='INCOME').reduce((s,t)=>s+t.amount,0);
+  const totalE  = transactions.filter(t=>t.type==='EXPENSE').reduce((s,t)=>s+t.amount,0);
+  const genDate = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+
+  let csv = `POCKET — EXPENSE STATEMENT\n`;
+  csv    += `Generated: ${genDate}\n`;
+  csv    += `Total Transactions: ${transactions.length}\n\n`;
+  csv    += `Date,Type,Title / Name,Category,Amount (Rs),Running Balance (Rs)\n`;
+
+  let running = 0;
+  sorted.forEach(t => {
+    running += t.type==='INCOME' ? t.amount : -t.amount;
+    const catLabel = t.type==='INCOME' ? t.tag : (CNAME[t.tag]||t.tag);
+    csv += `"${t.date}","${t.type}","${t.title}","${catLabel}","${t.amount}","${running}"\n`;
+  });
+
+  csv += `\n--- SUMMARY ---\n`;
+  csv += `Total Income,,,,"${totalI}",\n`;
+  csv += `Total Expenses,,,,"${totalE}",\n`;
+  csv += `Net Balance,,,,"${totalI-totalE}",\n`;
+
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `pocket-statement-${today()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setSync('ok', 'Statement downloaded ✓');
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+function init() {
+  $('iDate').value = today();
+  $('eDate').value = today();
+  if (monthlyBudget > 0) $('budInput').value = monthlyBudget;
+  renderAll();
+  setSync(
+    transactions.length ? 'ok' : '',
+    transactions.length ? `${transactions.length} transactions loaded` : 'Ready — add your first entry'
+  );
+}
+
+init();
+</script>
+</body>
+</html>
